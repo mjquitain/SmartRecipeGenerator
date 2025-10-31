@@ -1,0 +1,22 @@
+export const ingredients = [
+    { name: "Carrots", expiryDate: "2025-11-15", dateAdded: "2025-10-25" },
+    { name: "Chicken Breast", expiryDate: "2025-11-03", dateAdded: "2025-10-29" },
+    { name: "Eggs", expiryDate: "2025-11-20", dateAdded: "2025-10-22" },
+    { name: "Whole Milk", expiryDate: "2025-11-10", dateAdded: "2025-10-28" },
+    { name: "Greek Yogurt", expiryDate: "2025-11-08", dateAdded: "2025-10-27" },
+    { name: "Spinach", expiryDate: "2025-11-02", dateAdded: "2025-10-30" },
+    { name: "Tomatoes", expiryDate: "2025-11-06", dateAdded: "2025-10-26" },
+    { name: "Potatoes", expiryDate: "2025-12-15", dateAdded: "2025-10-20" },
+    { name: "Garlic", expiryDate: "2026-01-05", dateAdded: "2025-10-19" },
+    { name: "Onions", expiryDate: "2025-12-10", dateAdded: "2025-10-21" },
+    { name: "Olive Oil", expiryDate: "2026-05-01", dateAdded: "2025-10-10" },
+    { name: "Butter", expiryDate: "2025-12-01", dateAdded: "2025-10-25" },
+    { name: "Cheddar Cheese", expiryDate: "2025-11-25", dateAdded: "2025-10-26" },
+    { name: "Ground Beef", expiryDate: "2025-11-04", dateAdded: "2025-10-31" },
+    { name: "Rice", expiryDate: "2026-10-01", dateAdded: "2025-10-01" },
+    { name: "Pasta", expiryDate: "2026-02-15", dateAdded: "2025-10-12" },
+    { name: "Bread", expiryDate: "2025-11-03", dateAdded: "2025-10-30" },
+    { name: "Apples", expiryDate: "2025-11-18", dateAdded: "2025-10-23" },
+    { name: "Bananas", expiryDate: "2025-11-05", dateAdded: "2025-10-31" },
+    { name: "Fish Fillet", expiryDate: "2025-11-02", dateAdded: "2025-10-29" }
+];
