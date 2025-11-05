@@ -4,7 +4,6 @@ import {
     Box,
     Button,
     Card,
-    Container,
     Group,
     Paper,
     SimpleGrid,
@@ -12,6 +11,7 @@ import {
     Text,
     TextInput,
     Title,
+    rem
 } from '@mantine/core';
 import { ChefHat, Clock, Heart, Leaf, Plus, Search, X } from 'lucide-react';
 import { useState } from 'react';
@@ -38,39 +38,24 @@ function DashboardPage() {
     };
 
     const quickStats = [
-        { icon: Heart, label: 'Saved Recipes', value: '12', color: '#8a9a7b' },
-        { icon: ChefHat, label: 'Recipes Found', value: '48', color: '#6b7c5e' },
-        { icon: Leaf, label: 'Food Saved', value: '5.2kg', color: '#9aaa8b' },
+        { icon: Heart, label: 'Saved Recipes', value: '0', color: '#8a9a7b' },
+        { icon: ChefHat, label: 'Recipes Found', value: '0', color: '#6b7c5e' },
+        { icon: Leaf, label: 'Food Saved', value: '0kg', color: '#9aaa8b' },
     ];
 
     return (
-        <Box style={{ minHeight: '100vh', backgroundColor: '#f8f9f8' }}>
-            {/* Header */}
-            <Box
-                style={{
-                    backgroundColor: 'white',
-                    borderBottom: '2px solid #e8f0e8',
-                    padding: '20px 0',
-                }}
+        <Stack
+            align={"center"}
+            style={{ backgroundColor: "#f8f9f8" }}
+            mih={"100vh"}
+            w={"100%"}
+        >
+            <Stack
+                w={"100%"}
+                maw={rem(1655)}
+                p={"xl"}
+                gap={"xs"}
             >
-                <Container size="xl">
-                    <Group justify="flex-end">
-                        <Button
-                            variant="outline"
-                            style={{
-                                borderColor: '#8a9a7b',
-                                color: '#8a9a7b',
-                            }}
-                            leftSection={<Heart size={16} />}
-                        >
-                            My Favorites
-                        </Button>
-                    </Group>
-                </Container>
-            </Box>
-
-            <Container size="xl" py={40}>
-                {/* Quick Stats */}
                 <SimpleGrid cols={3} spacing="lg" mb={40}>
                     {quickStats.map((stat, index) => (
                         <Card
@@ -269,8 +254,8 @@ function DashboardPage() {
                         </Group>
                     </Card>
                 </SimpleGrid>
-            </Container>
-        </Box>
+            </Stack>
+        </Stack>
     );
 }
 
