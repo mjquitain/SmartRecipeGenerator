@@ -125,7 +125,6 @@ function LoginPage() {
                             }}
                             onClick={(e) => {
                                 e.preventDefault();
-                                console.log('Navigate to register');
                             }}
                         >
                             Sign up
