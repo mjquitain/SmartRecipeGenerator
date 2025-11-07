@@ -1,4 +1,5 @@
 import {
+    Badge,
     Box,
     Button,
     Card,
@@ -7,6 +8,7 @@ import {
     Group,
     Paper,
     rem,
+    Select,
     SimpleGrid,
     Stack,
     Tabs,
@@ -14,9 +16,27 @@ import {
     TextInput,
     Title
 } from "@mantine/core";
-import { Blocks, BookHeart, Save } from "lucide-react";
+import { Blocks, BookHeart, Plus, Save } from "lucide-react";
+import { useState } from "react";
+import { ingredients } from "../../data/mock_ingredients_data";
+
+interface Ingredient {
+    id: number | string;
+    name: string;
+}
+
 
 function RecipePage() {
+    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
+
+    const toggleIngredient = (ingredientName: string) => {
+        setSelectedIngredients((prev) =>
+            prev.includes(ingredientName)
+                ? prev.filter((name) => name !== ingredientName)
+                : [...prev, ingredientName]
+        );
+    };
+
     return (
         <Stack
             align="center"
@@ -46,43 +66,66 @@ function RecipePage() {
                     <Tabs.Panel value="generated recipes" pt="xl">
                         <Group align="flex-start" gap="lg" wrap="nowrap">
                             <Paper
+                                shadow="md"
                                 p="lg"
+                                radius={"lg"}
                                 w={350}
                                 miw={350}
-                                mih="calc(100vh - 250px)"
+                                h="calc(100vh - 250px)"
                                 style={{
                                     backgroundColor: 'white',
                                     border: '2px solid #8a9a7b',
-                                    borderRadius: '10px',
                                 }}
                             >
-                                <Stack h="100%" justify="space-between">
-                                    <Box align="center">
+                                <Flex h="100%" direction="column">
+                                    <Box ta="center">
                                         <Title order={4} mb="md" style={{ color: '#2d3319' }}>
                                             Ingredients Available
                                         </Title>
                                         <Divider mb="md" color="#e8f0e8" />
-
-                                        <Stack gap="xs" mih={300}>
-                                        </Stack>
                                     </Box>
 
-                                    <Button
-                                        fullWidth
-                                        top={"230px"}
-                                        size="md"
-                                        styles={{
-                                            root: {
-                                                backgroundColor: '#8a9a7b',
-                                                '&:hover': {
-                                                    backgroundColor: '#6b7c5e',
+                                    <Group gap="xs" mih={300} justify="center">
+                                        {ingredients.map((ingredient: Ingredient) => {
+                                            const isSelected = selectedIngredients.includes(ingredient.name);
+                                            return (
+                                                <Badge
+                                                    key={ingredient.id}
+                                                    radius="lg"
+                                                    size="xl"
+                                                    onClick={() => toggleIngredient(ingredient.name)}
+                                                    variant={isSelected ? "filled" : "outline"}
+                                                    style={{
+                                                        backgroundColor: isSelected ? "#8a9a7b" : "transparent",
+                                                        color: isSelected ? "white" : "#2d3319",
+                                                        borderColor: "#8a9a7b",
+                                                        cursor: "pointer",
+                                                        transition: "all 0.2s ease",
+                                                    }}
+                                                >
+                                                    <Text size="sm">{ingredient.name}</Text>
+                                                </Badge>
+                                            );
+                                        })}
+                                    </Group>
+
+                                    <Box mt="auto">
+                                        <Button
+                                            fullWidth
+                                            size="md"
+                                            styles={{
+                                                root: {
+                                                    backgroundColor: '#8a9a7b',
+                                                    '&:hover': {
+                                                        backgroundColor: '#6b7c5e',
+                                                    },
                                                 },
-                                            },
-                                        }}
-                                    >
-                                        Generate Recipe
-                                    </Button>
-                                </Stack>
+                                            }}
+                                        >
+                                            Generate Recipe
+                                        </Button>
+                                    </Box>
+                                </Flex>
                             </Paper>
 
                             <Box style={{ flex: 1 }}>
@@ -227,9 +270,31 @@ function RecipePage() {
                     </Tabs.Panel>
 
                     <Tabs.Panel value="saved recipes" pt="xl">
-                        <Flex justify={"flex-end"}>
-                            <TextInput placeholder="Search saved recipes..." w={800} mb="xl" />
-                            <Button ml="md" mb="xl" styles={{
+                        <Flex justify={"flex-end"} gap={"md"} mb={"xl"}>
+                            <TextInput placeholder="Search saved recipes..." w={700} radius={"md"} />
+                            <Select placeholder="Sort Recipes" data={[
+                                'Beef',
+                                'Chicken',
+                                'Vegetarian',
+                                'Vegan',
+                                'Dessert',
+                                'Lamb',
+                                'Miscellaneous',
+                                'Pasta',
+                                'Seafood',
+                                'Side',
+                                'Pork',
+                                'Breakfast',
+                                'Goat',
+                                'Starter'
+                            ]}
+                                style={{ width: 160 }}
+                                radius={"md"}
+                                checkIconPosition="right"
+                                clearable
+                                allowDeselect
+                            />
+                            <Button leftSection={<Plus size={18} />} w={"160px"} radius={"md"} styles={{
                                 root: {
                                     backgroundColor: '#8a9a7b'
                                 }
@@ -265,6 +330,31 @@ function RecipePage() {
                     </Tabs.Panel>
 
                     <Tabs.Panel value="favorite recipes" pt="xl">
+                        <Flex justify={"flex-end"} gap={"md"}>
+                            <TextInput placeholder="Search favorite recipes..." w={700} mb="xl" radius={"md"} />
+                            <Select placeholder="Sort Recipes" data={[
+                                'Beef',
+                                'Chicken',
+                                'Vegetarian',
+                                'Vegan',
+                                'Dessert',
+                                'Lamb',
+                                'Miscellaneous',
+                                'Pasta',
+                                'Seafood',
+                                'Side',
+                                'Pork',
+                                'Breakfast',
+                                'Goat',
+                                'Starter'
+                            ]}
+                                style={{ width: 160 }}
+                                radius={"md"}
+                                checkIconPosition="right"
+                                clearable
+                                allowDeselect
+                            />
+                        </Flex>
                         <Paper
                             p="xl"
                             style={{
