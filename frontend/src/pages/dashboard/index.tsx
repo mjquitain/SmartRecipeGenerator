@@ -1,3 +1,7 @@
+import { RecipeDetailModal } from "@/components/modals/RecipeModal";
+import { RecipeCard } from "@/components/RecipeCard";
+import { ingredients as mockIngredients } from '@/data/mock_ingredients_data';
+import { FAVORITE_KEY, SAVED_KEY, type ActionType, type MealRecipe } from '@/pages/recipe';
 import {
     ActionIcon,
     Badge,
@@ -5,7 +9,6 @@ import {
     Button,
     Card,
     Group,
-    Modal,
     Paper,
     SimpleGrid,
     Stack,
@@ -15,9 +18,9 @@ import {
     Title,
     rem
 } from '@mantine/core';
+import { modals } from "@mantine/modals";
 import { Blocks, ChefHat, Heart, Leaf, Plus, Search, ShoppingBag, X } from 'lucide-react';
 import { useEffect, useState, type ChangeEvent } from 'react';
-import { ingredients as mockIngredients } from '../../data/mock_ingredients_data';
 
 interface QuickStat {
     icon: React.ElementType;
@@ -25,6 +28,16 @@ interface QuickStat {
     value: string;
     color: string;
 }
+
+const loadFromLocalStorage = (key: string): MealRecipe[] => {
+    try {
+        const item = window.localStorage.getItem(key);
+        return item ? JSON.parse(item) : [];
+    } catch (error) {
+        console.error(`Error loading state from Local Storage for key: ${key}`, error);
+        return [];
+    }
+};
 
 function DashboardPage() {
     const [recipes, setRecipes] = useState<any[]>([]);
@@ -35,10 +48,31 @@ function DashboardPage() {
     const [hasSearched, setHasSearched] = useState(false);
     const [expiringIngredients, setExpiringIngredients] = useState();
     const [suggestedRecipes, setSuggestedRecipes] = useState<any[]>([]);
-    const [selectedRecipe, setSelectedRecipe] = useState<any | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedRecipe, setSelectedRecipe] = useState<MealRecipe | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("Suggested Recipe");
+    const [savedRecipes, setSavedRecipes] = useState<MealRecipe[]>(() =>
+        loadFromLocalStorage(SAVED_KEY)
+    );
+    const [favoriteRecipes, setFavoriteRecipes] = useState<MealRecipe[]>(() =>
+        loadFromLocalStorage(FAVORITE_KEY)
+    );
 
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(SAVED_KEY, JSON.stringify(savedRecipes));
+        } catch (error) {
+            console.error("Error saving savedRecipes to Local Storage:", error);
+        }
+    }, [savedRecipes]);
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(FAVORITE_KEY, JSON.stringify(favoriteRecipes));
+        } catch (error) {
+            console.error("Error saving favoriteRecipes to Local Storage:", error);
+        }
+    }, [favoriteRecipes]);
 
     const fetchRecipes = async (): Promise<void> => {
         try {
@@ -65,6 +99,8 @@ function DashboardPage() {
     const fetchRecipesByIngredients = async (): Promise<void> => {
         setHasSearched(true);
         setActiveTab("Generated Recipes");
+        setIsDetailModalOpen(false);
+        setRecipes([]);
 
         if (ingredients.length === 0) {
             setRecipes([]);
@@ -117,6 +153,8 @@ function DashboardPage() {
     };
 
     const fetchSuggestedRecipes = async (): Promise<void> => {
+        setActiveTab("Suggested Recipe");
+
         try {
             setIsLoading(true);
 
@@ -179,27 +217,126 @@ function DashboardPage() {
 
     const recipesFound = defaultRecipes.length;
     const ingredientsAvailable = mockIngredients.length;
+    const foundSavedRecipes = SAVED_KEY ? JSON.parse(localStorage.getItem(SAVED_KEY) || '[]').length : 0;
 
     const quickStats: QuickStat[] = [
         { icon: ChefHat, label: "Recipes Found", value: recipesFound.toString(), color: "#8a9a7b" },
-        { icon: Heart, label: "Saved Recipes", value: "0", color: "#8a9a7b" },
+        { icon: Heart, label: "Saved Recipes", value: foundSavedRecipes.toString(), color: "#8a9a7b" },
         { icon: Leaf, label: "Ingredients Available", value: ingredientsAvailable.toString(), color: "#8a9a7b" },
     ];
 
     const openRecipeModal = async (idMeal: string) => {
         try {
-            setIsLoading(true);
-            const response = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${idMeal}`);
-            const data = await response.json();
-            if (data.meals && data.meals.length > 0) {
-                setSelectedRecipe(data.meals[0]);
-                setIsModalOpen(true);
+            let recipe = savedRecipes.find(r => r.idMeal === idMeal) || favoriteRecipes.find(r => r.idMeal === idMeal);
+
+            if (!recipe) {
+                const response = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${idMeal}`);
+                const data = await response.json();
+                if (data.meals && data.meals.length > 0) {
+                    recipe = data.meals[0];
+                }
             }
+
+            if (recipe) {
+                setSelectedRecipe(recipe);
+                setIsDetailModalOpen(true);
+            }
+
         } catch (error) {
             console.error("Error fetching recipe details:", error);
-        } finally {
-            setIsLoading(false);
         }
+    };
+
+    const handleSaveRecipe = (recipe: MealRecipe) => {
+        if (
+            !savedRecipes.some(r => r.idMeal === recipe.idMeal) &&
+            !favoriteRecipes.some(r => r.idMeal === recipe.idMeal)
+        ) {
+            setSavedRecipes(prev => [...prev, recipe]);
+        }
+    };
+
+    const handleUnsaveRecipe = (idMeal: string) => {
+        setSavedRecipes(prev => prev.filter(r => r.idMeal !== idMeal));
+    };
+
+    const handleFavoriteRecipe = (recipe: MealRecipe) => {
+        if (!favoriteRecipes.some(r => r.idMeal === recipe.idMeal)) {
+            setFavoriteRecipes(prev => [...prev, recipe]);
+
+            setSavedRecipes(prev => prev.filter(r => r.idMeal !== recipe.idMeal));
+        }
+    };
+
+    const handleUnfavoriteRecipe = (idMeal: string) => {
+        const recipeToRestore = favoriteRecipes.find(r => r.idMeal === idMeal);
+        setFavoriteRecipes(prev => prev.filter(r => r.idMeal !== idMeal));
+        if (recipeToRestore && !savedRecipes.some(r => r.idMeal === idMeal)) {
+            setSavedRecipes(prev => [...prev, recipeToRestore]);
+        }
+    };
+
+    const isRecipeSaved = (idMeal: string) => savedRecipes.some(r => r.idMeal === idMeal);
+    const isRecipeFavorite = (idMeal: string) => favoriteRecipes.some(r => r.idMeal === idMeal);
+
+    const openActionModal = (recipe: MealRecipe, action: ActionType) => {
+        const isSaved = isRecipeSaved(recipe.idMeal);
+        const isFavorited = isRecipeFavorite(recipe.idMeal);
+
+        const isRemoveAction = (action === 'save' && isSaved) || (action === 'favorite' && isFavorited);
+
+        const actionLabel = action === 'save' ? 'Saved Recipes' : 'Favorite Recipes';
+
+        let title: string;
+        let messageComponent: React.ReactNode;
+        let confirmLabel: string;
+        let color: 'green' | 'red' | 'orange';
+
+        if (isRemoveAction) {
+            title = `Remove recipe from ${actionLabel}?`;
+            messageComponent = (
+                <Text size="sm">
+                    Are you sure you want to remove "{recipe.strMeal}" from your {actionLabel}?
+                </Text>
+            );
+            confirmLabel = 'Yes, Remove It';
+            color = 'red';
+        } else {
+            title = `Add recipe to ${actionLabel}?`;
+            confirmLabel = `Yes, ${action === 'save' ? 'Save' : 'Favorite'}`;
+
+            if (action === 'favorite' && isSaved) {
+                messageComponent = (
+                    <Text size="sm" c="orange">
+                        Favoriting "{recipe.strMeal}" will automatically remove it from your Saved Recipes section. Continue?
+                    </Text>
+                );
+                color = 'green';
+            } else {
+                messageComponent = (
+                    <Text size="sm">
+                        Confirm you want to {action} "{recipe.strMeal}".
+                    </Text>
+                );
+                color = action === 'save' ? 'green' : 'red';
+            }
+        }
+
+        modals.openConfirmModal({
+            title: <Title order={4} ta="center">{title}</Title>,
+            centered: true,
+            confirmProps: { color: color, children: confirmLabel },
+            labels: { cancel: 'Cancel', confirm: confirmLabel },
+            children: messageComponent,
+
+            onConfirm: () => {
+                if (action === 'save') {
+                    isSaved ? handleUnsaveRecipe(recipe.idMeal) : handleSaveRecipe(recipe);
+                } else {
+                    isFavorited ? handleUnfavoriteRecipe(recipe.idMeal) : handleFavoriteRecipe(recipe);
+                }
+            },
+        });
     };
 
     return (
@@ -257,7 +394,7 @@ function DashboardPage() {
                         borderColor: '#8a9a7b',
                         borderWidth: '2px',
                     }}
-                    mb={30}
+                    mb={"lg"}
                 >
                     <Stack gap="md">
                         <div>
@@ -289,14 +426,7 @@ function DashboardPage() {
                             <Button
                                 onClick={addIngredient}
                                 leftSection={<Plus size={16} />}
-                                styles={{
-                                    root: {
-                                        backgroundColor: '#8a9a7b',
-                                        '&:hover': {
-                                            backgroundColor: '#6b7c5e',
-                                        },
-                                    },
-                                }}
+                                color='#6b7c5e'
                             >
                                 Add Ingredient
                             </Button>
@@ -340,32 +470,27 @@ function DashboardPage() {
                         {ingredients.length > 0 && (
                             <>
                                 <Button
-                                    size="lg"
+                                    size="md"
                                     fullWidth
                                     leftSection={<Search size={20} />}
                                     loading={isLoading}
                                     onClick={fetchRecipesByIngredients}
-                                    styles={{
-                                        root: {
-                                            backgroundColor: '#6b7c5e',
-                                            '&:hover': { backgroundColor: '#5a6b4f' },
-                                        },
-                                    }}
+                                    color='#6b7c5e'
                                 >
                                     Generate Recipe
                                 </Button>
 
                                 <Button
-                                    size="sm"
+                                    size="md"
                                     variant="light"
                                     color="gray"
                                     fullWidth
-                                    mt="xs"
                                     onClick={() => {
                                         setIngredients([]);
                                         setRecipes(defaultRecipes);
                                         setCurrentIngredient("");
                                         setHasSearched(false);
+                                        setActiveTab("Suggested Recipe");
                                     }}
                                 >
                                     Clear Results
@@ -392,7 +517,7 @@ function DashboardPage() {
                         </Tabs.Tab>
                     </Tabs.List>
 
-                    <Tabs.Panel value="Suggested Recipe" pt="xs">
+                    <Tabs.Panel value="Suggested Recipe" pt="lg">
                         <Paper
                             p="xl"
                             style={{
@@ -415,31 +540,16 @@ function DashboardPage() {
                                     <Text size="md" fw={500} mb="md" style={{ color: "#2d3319" }}>
                                         Suggested recipes based on expiring ingredients: ({suggestedRecipes.length})
                                     </Text>
-                                    <SimpleGrid cols={3} spacing="md">
+                                    <SimpleGrid cols={5} spacing="md">
                                         {suggestedRecipes.map((recipe) => (
-                                            <Card
+                                            <RecipeCard
                                                 key={recipe.idMeal}
-                                                shadow="sm"
-                                                radius="md"
-                                                withBorder
-                                                style={{ borderColor: "#e8f0e8" }}
-                                            >
-                                                <img
-                                                    src={recipe.strMealThumb}
-                                                    alt={recipe.strMeal}
-                                                    style={{
-                                                        width: "100%",
-                                                        borderRadius: "8px",
-                                                        marginBottom: "8px",
-                                                    }}
-                                                />
-                                                <Text fw={500} style={{ color: "#2d3319", marginBottom: "8px" }}>
-                                                    {recipe.strMeal}
-                                                </Text>
-                                                <Button color={"#8a9a7b"} onClick={() => openRecipeModal(recipe.idMeal)} mt={"auto"}>
-                                                    View Recipe
-                                                </Button>
-                                            </Card>
+                                                recipe={recipe}
+                                                onView={openRecipeModal}
+                                                onAction={openActionModal}
+                                                isSaved={isRecipeSaved(recipe.idMeal)}
+                                                isFavorite={isRecipeFavorite(recipe.idMeal)}
+                                            />
                                         ))}
                                     </SimpleGrid>
                                 </Box>
@@ -451,7 +561,7 @@ function DashboardPage() {
                         </Paper>
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="Generated Recipes" pt="xs">
+                    <Tabs.Panel value="Generated Recipes" pt="lg">
                         <Paper
                             p="xl"
                             style={{
@@ -462,7 +572,7 @@ function DashboardPage() {
                                 minHeight: '400px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'flex-start'
                             }}
                         >
                             <Text ta="center" c="dimmed">
@@ -478,36 +588,21 @@ function DashboardPage() {
                                     </Text>
                                 )}
                                 {hasSearched && !isLoading && recipes.length > 0 && (
-                                    <Box>
+                                    <Box w="100%">
                                         <Text size="md" fw={500} mb="md" style={{ color: "#2d3319" }}>
                                             Recipes found: {recipes.length}
                                         </Text>
 
-                                        <SimpleGrid cols={3} spacing="md">
+                                        <SimpleGrid cols={5} spacing="md">
                                             {recipes.map((recipe) => (
-                                                <Card
+                                                <RecipeCard
                                                     key={recipe.idMeal}
-                                                    shadow="sm"
-                                                    radius="md"
-                                                    withBorder
-                                                    style={{ borderColor: "#e8f0e8" }}
-                                                >
-                                                    <img
-                                                        src={recipe.strMealThumb}
-                                                        alt={recipe.strMeal}
-                                                        style={{
-                                                            width: "100%",
-                                                            borderRadius: "8px",
-                                                            marginBottom: "8px",
-                                                        }}
-                                                    />
-                                                    <Text fw={500} style={{ color: "#2d3319", marginBottom: "8px" }}>
-                                                        {recipe.strMeal}
-                                                    </Text>
-                                                    <Button color={"#8a9a7b"} onClick={() => openRecipeModal(recipe.idMeal)} mt={"auto"}>
-                                                        View Recipe
-                                                    </Button>
-                                                </Card>
+                                                    recipe={recipe}
+                                                    onView={openRecipeModal}
+                                                    onAction={openActionModal}
+                                                    isSaved={isRecipeSaved(recipe.idMeal)}
+                                                    isFavorite={isRecipeFavorite(recipe.idMeal)}
+                                                />
                                             ))}
                                         </SimpleGrid>
                                     </Box>
@@ -518,62 +613,15 @@ function DashboardPage() {
                                         No recipes found for your selected ingredients.
                                     </Text>
                                 )}
-                                {hasSearched && !isLoading && ingredients.length === 0 && (
-                                    <Text ta="center" c="dimmed" mt="sm">
-                                        Please add ingredients and click "Generate Recipe".
-                                    </Text>
-                                )}
                             </Text>
                         </Paper>
                     </Tabs.Panel>
                 </Tabs>
-                <Modal
-                    opened={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    title={<Text tt="capitalize" fw={500} size="xl">{selectedRecipe?.strMeal}</Text>}
-                    size="lg"
-                    centered
-                >
-                    {selectedRecipe ? (
-                        <Box>
-                            <img
-                                src={selectedRecipe.strMealThumb}
-                                alt={selectedRecipe.strMeal}
-                                style={{ width: "100%", borderRadius: "10px", marginBottom: "10px" }}
-                            />
-                            <Text fw={500} mb="xs">Category: {selectedRecipe.strCategory}</Text>
-                            <Text fw={500} mb="xs">Area: {selectedRecipe.strArea}</Text>
-
-                            <Text mt="sm" fw={600} mb="xs" style={{ color: "#2d3319" }}>Ingredients:</Text>
-                            <ul style={{ paddingLeft: "20px" }}>
-                                {Array.from({ length: 20 }, (_, i) => i + 1)
-                                    .map(i => {
-                                        const ingredient = selectedRecipe[`strIngredient${i}`];
-                                        const measure = selectedRecipe[`strMeasure${i}`];
-                                        return ingredient && ingredient.trim() !== "" ? (
-                                            <li key={i}>{ingredient} - {measure}</li>
-                                        ) : null;
-                                    })}
-                            </ul>
-
-                            <Text mt="md" fw={600} mb="xs" style={{ color: "#2d3319" }}>Instructions:</Text>
-                            <Text size="sm" style={{ whiteSpace: "pre-line", color: "#5a6b4f" }}>
-                                {selectedRecipe.strInstructions}
-                            </Text>
-
-                            {selectedRecipe.strYoutube && (
-                                <Box mt="md">
-                                    <Text fw={600} mb="xs">Watch Tutorial:</Text>
-                                    <a href={selectedRecipe.strYoutube} target="_blank" rel="noopener noreferrer">
-                                        {selectedRecipe.strYoutube}
-                                    </a>
-                                </Box>
-                            )}
-                        </Box>
-                    ) : (
-                        <Text>Loading...</Text>
-                    )}
-                </Modal>
+                <RecipeDetailModal
+                    opened={isDetailModalOpen}
+                    onClose={() => setIsDetailModalOpen(false)}
+                    selectedRecipe={selectedRecipe}
+                />
             </Stack>
         </Stack>
     );

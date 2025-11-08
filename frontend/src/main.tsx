@@ -7,6 +7,7 @@ import { routeTree } from './routeTree.gen'
 
 import { MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
+import { ModalsProvider } from '@mantine/modals'
 import reportWebVitals from './reportWebVitals.ts'
 import './styles.css'
 
@@ -34,7 +35,9 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <MantineProvider>
-        <RouterProvider router={router} />
+        <ModalsProvider>
+          <RouterProvider router={router} />
+        </ModalsProvider>
       </MantineProvider>
     </StrictMode>,
   )

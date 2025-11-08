@@ -158,5 +158,29 @@ export const ingredients = [
         category: "Protein",
         dateAdded: "2025-10-29",
         expiryDate: "2025-11-02"
-    }
+    },
+    {
+        id: 21,
+        quantity: "1 jar",
+        name: "Peanut Butter",
+        category: "Condiment",
+        dateAdded: "2025-10-15",
+        expiryDate: "2026-03-15"
+    },
+    {
+        id: 22,
+        quantity: "1 bottle",
+        name: "Soy Sauce",
+        category: "Condiment",
+        dateAdded: "2025-10-18",
+        expiryDate: "2026-04-01"
+    },
+    {
+        id: 23,
+        quantity: "1 bunch",
+        name: "Cilantro",
+        category: "Vegetable",
+        dateAdded: "2025-10-30",
+        expiryDate: "2025-11-04"
+    },
 ];
