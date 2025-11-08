@@ -14,6 +14,7 @@ import {
     Title
 } from "@mantine/core";
 import { Edit, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { ingredients } from "../../data/mock_ingredients_data";
 
 interface Ingredient {
@@ -51,6 +52,21 @@ export const getExpiryStatus = (
 };
 
 function MyIngredientsPage() {
+    const [search, setSearch] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+    const filteredIngredients = useMemo(() => {
+        return ingredients.filter((item) => {
+            const matchesSearch = item.name
+                .toLowerCase()
+                .includes(search.toLowerCase());
+            const matchesCategory = selectedCategory
+                ? item.category === selectedCategory
+                : true;
+            return matchesSearch && matchesCategory;
+        });
+    }, [search, selectedCategory]);
+
     return (
         <Stack
             align="center"
@@ -74,9 +90,15 @@ function MyIngredientsPage() {
                         </Text>
                     </Flex>
                     <Flex justify={"flex-end"} gap={"md"} style={{ flex: 1 }}>
-                        <TextInput placeholder="Search ingredients..." radius={"md"} style={{ flex: 1, minWidth: '200px', maxWidth: "800px" }} />
+                        <TextInput
+                            placeholder="Search ingredients..."
+                            radius={"md"}
+                            style={{ flex: 1, minWidth: '200px', maxWidth: "800px" }}
+                            value={search}
+                            onChange={(e) => setSearch(e.currentTarget.value)}
+                        />
                         <Select placeholder="Category" data={[
-                            'Proteins',
+                            'Protein',
                             'Dairy',
                             'Condiment',
                             'Grain',
@@ -88,20 +110,15 @@ function MyIngredientsPage() {
                             checkIconPosition="right"
                             clearable
                             allowDeselect
+                            value={selectedCategory}
+                            onChange={setSelectedCategory}
                         />
                         <Button
                             leftSection={<Plus size={18} />}
                             w={"100%"}
                             miw={"100px"}
                             maw={"160px"}
-                            styles={{
-                                root: {
-                                    backgroundColor: '#8a9a7b',
-                                    '&:hover': {
-                                        backgroundColor: '#6b7c5e',
-                                    },
-                                },
-                            }}
+                            color="#6b7c5e"
                         >
                             Add Ingredient
                         </Button>
@@ -120,7 +137,6 @@ function MyIngredientsPage() {
                     <Table.ScrollContainer minWidth={800}>
                         <Table
                             withColumnBorders
-                            highlightOnHover
                             styles={{
                                 th: {
                                     backgroundColor: '#f8f9f8',
@@ -133,6 +149,7 @@ function MyIngredientsPage() {
                                 },
                             }}
                         >
+                            {/* Use Mantine React Table in the future */}
                             <Table.Thead>
                                 <Table.Tr>
                                     <Table.Th>Quantity</Table.Th>
@@ -147,7 +164,7 @@ function MyIngredientsPage() {
                             </Table.Thead>
 
                             <Table.Tbody>
-                                {ingredients.map((item: Ingredient, index: number) => {
+                                {filteredIngredients.map((item: Ingredient, index: number) => {
                                     const expiryStatus = getExpiryStatus(item.expiryDate);
 
                                     return (
@@ -205,6 +222,11 @@ function MyIngredientsPage() {
                                             </Table.Td>
                                             <Table.Td>
                                                 <Group gap="xs" justify="flex-end">
+                                                    <Button
+                                                        color="#6b7c5e"
+                                                        size="xs">
+                                                        Mark as Used
+                                                    </Button>
                                                     <ActionIcon
                                                         variant="light"
                                                         color="blue"
@@ -224,12 +246,33 @@ function MyIngredientsPage() {
                                         </Table.Tr>
                                     );
                                 })}
+                                {filteredIngredients.length === 0 && (
+                                    <Table.Tr>
+                                        <Table.Td colSpan={8}>
+                                            <Paper
+                                                style={{
+                                                    backgroundColor: 'white',
+                                                    border: '2px dashed #e8f0e8',
+                                                    borderRadius: '10px',
+                                                    textAlign: 'center',
+                                                    minHeight: '200px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}>
+                                                <Text c="dimmed" ta="center">
+                                                    No ingredients found matching your search and category selection.
+                                                </Text>
+                                            </Paper>
+                                        </Table.Td>
+                                    </Table.Tr>
+                                )}
                             </Table.Tbody>
                         </Table>
                     </Table.ScrollContainer>
                 </Paper>
             </Stack>
-        </Stack>
+        </Stack >
     );
 }
 
