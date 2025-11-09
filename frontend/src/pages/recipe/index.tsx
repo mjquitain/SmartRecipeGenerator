@@ -60,6 +60,10 @@ function RecipePage() {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedRecipe, setSelectedRecipe] = useState<MealRecipe | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [savedSearch, setSavedSearch] = useState("");
+    const [savedCategory, setSavedCategory] = useState<string | null>(null);
+    const [favSearch, setFavSearch] = useState("");
+    const [favCategory, setFavCategory] = useState<string | null>(null);
 
     const [savedRecipes, setSavedRecipes] = useState<MealRecipe[]>(() =>
         loadFromLocalStorage(SAVED_KEY)
@@ -189,7 +193,6 @@ function RecipePage() {
     const handleFavoriteRecipe = (recipe: MealRecipe) => {
         if (!favoriteRecipes.some(r => r.idMeal === recipe.idMeal)) {
             setFavoriteRecipes(prev => [...prev, recipe]);
-
             setSavedRecipes(prev => prev.filter(r => r.idMeal !== recipe.idMeal));
         }
     };
@@ -264,6 +267,26 @@ function RecipePage() {
             },
         });
     };
+
+    const filteredSavedRecipes = savedRecipes.filter((recipe) => {
+        const matchesSearch = recipe.strMeal
+            .toLowerCase()
+            .includes(savedSearch.toLowerCase());
+        const matchesCategory = savedCategory
+            ? recipe.strCategory === savedCategory
+            : true;
+        return matchesSearch && matchesCategory;
+    });
+
+    const filteredFavoriteRecipes = favoriteRecipes.filter((recipe) => {
+        const matchesSearch = recipe.strMeal
+            .toLowerCase()
+            .includes(favSearch.toLowerCase());
+        const matchesCategory = favCategory
+            ? recipe.strCategory === favCategory
+            : true;
+        return matchesSearch && matchesCategory;
+    });
 
     return (
         <Stack
@@ -403,7 +426,13 @@ function RecipePage() {
 
                     <Tabs.Panel value="saved recipes" pt="xl">
                         <Flex justify={"flex-end"} gap={"md"} mb={"xl"}>
-                            <TextInput placeholder="Search saved recipes..." w={700} radius={"md"} />
+                            <TextInput
+                                placeholder="Search saved recipes..."
+                                style={{ flex: 1, maxWidth: "700px" }}
+                                radius={"md"}
+                                value={savedSearch}
+                                onChange={(e) => setSavedSearch(e.currentTarget.value)}
+                            />
                             <Select placeholder="Sort Recipes" data={[
                                 'Beef',
                                 'Chicken',
@@ -425,6 +454,8 @@ function RecipePage() {
                                 checkIconPosition="right"
                                 clearable
                                 allowDeselect
+                                value={savedCategory}
+                                onChange={setSavedCategory}
                             />
                             <Button leftSection={<Plus size={18} />} w={"160px"} radius={"md"} styles={{
                                 root: {
@@ -447,9 +478,9 @@ function RecipePage() {
                                 justifyContent: 'center'
                             }}
                         >
-                            {savedRecipes.length > 0 ? (
+                            {filteredSavedRecipes.length > 0 ? (
                                 <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md" w="100%">
-                                    {savedRecipes.map((recipe) => (
+                                    {filteredSavedRecipes.map((recipe) => (
                                         <RecipeCard
                                             key={recipe.idMeal}
                                             recipe={recipe}
@@ -479,7 +510,13 @@ function RecipePage() {
 
                     <Tabs.Panel value="favorite recipes" pt="xl">
                         <Flex justify={"flex-end"} gap={"md"}>
-                            <TextInput placeholder="Search favorite recipes..." w={700} mb="xl" radius={"md"} />
+                            <TextInput
+                                placeholder="Search favorite recipes..."
+                                w={700} mb="xl"
+                                radius={"md"}
+                                value={favSearch}
+                                onChange={(e) => setFavSearch(e.currentTarget.value)}
+                            />
                             <Select placeholder="Sort Recipes" data={[
                                 'Beef',
                                 'Chicken',
@@ -501,6 +538,8 @@ function RecipePage() {
                                 checkIconPosition="right"
                                 clearable
                                 allowDeselect
+                                value={favCategory}
+                                onChange={setFavCategory}
                             />
                         </Flex>
                         <Paper
@@ -516,9 +555,9 @@ function RecipePage() {
                                 justifyContent: 'center'
                             }}
                         >
-                            {favoriteRecipes.length > 0 ? (
+                            {filteredFavoriteRecipes.length > 0 ? (
                                 <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md" w="100%">
-                                    {favoriteRecipes.map((recipe) => (
+                                    {filteredFavoriteRecipes.map((recipe) => (
                                         <RecipeCard
                                             key={recipe.idMeal}
                                             recipe={recipe}
