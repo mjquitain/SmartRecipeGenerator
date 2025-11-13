@@ -4,6 +4,7 @@ import {
     Button,
     Flex,
     Group,
+    Modal,
     Paper,
     rem,
     Select,
@@ -13,6 +14,7 @@ import {
     TextInput,
     Title
 } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ingredients } from "../../data/mock_ingredients_data";
@@ -54,9 +56,90 @@ export const getExpiryStatus = (
 function MyIngredientsPage() {
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [name, setName] = useState("");
+    const [quantity, setQuantity] = useState("");
+    const [category, setCategory] = useState<string | null>(null);
+    const [dateAdded, setDateAdded] = useState<Date | null>(null);
+    const [expiryDate, setExpiryDate] = useState<Date | null>(null);
+    const [IngredientFormOpened, setIngredientFormOpened] = useState(false);
+    const [ingredientToEdit, setIngredientToEdit] = useState<Ingredient | null>(null);
+
+    const [ingredientList, setIngredientList] = useState<Ingredient[]>(() => {
+        const stored = localStorage.getItem("ingredients");
+        return stored ? JSON.parse(stored) : ingredients;
+    });
+
+    const saveIngredients = (newList: Ingredient[]) => {
+        setIngredientList(newList);
+        localStorage.setItem("ingredients", JSON.stringify(newList));
+    };
+
+    const deleteIngredient = (id: number) => {
+        const newList = ingredientList.filter(item => item.id !== id);
+        saveIngredients(newList);
+    };
+
+    const markAsUsed = (id: number) => {
+        deleteIngredient(id);
+    };
+
+    const editIngredient = (updatedIngredient: Ingredient) => {
+        const newList = ingredientList.map(item =>
+            item.id === updatedIngredient.id ? updatedIngredient : item
+        );
+        saveIngredients(newList);
+        setIngredientToEdit(null);
+    };
+
+    const handleOpenEditModal = (ingredient: Ingredient) => {
+        setIngredientToEdit(ingredient);
+        setName(ingredient.name);
+        setQuantity(ingredient.quantity);
+        setCategory(ingredient.category);
+        setDateAdded(new Date(ingredient.dateAdded));
+        setExpiryDate(new Date(ingredient.expiryDate));
+        setIngredientFormOpened(true);
+    };
+
+    const handleFormSubmit = () => {
+        if (!name || !quantity || !category || !dateAdded || !expiryDate) return;
+
+        const newIngredientData = {
+            name,
+            quantity,
+            category,
+            dateAdded: new Date(dateAdded).toISOString(),
+            expiryDate: new Date(expiryDate).toISOString(),
+        };
+
+        if (ingredientToEdit) {
+            editIngredient({
+                ...ingredientToEdit,
+                ...newIngredientData,
+            });
+        } else {
+            const newIngredient: Ingredient = {
+                id: Date.now(),
+                ...newIngredientData,
+            };
+            const updated = [...ingredientList, newIngredient];
+            saveIngredients(updated);
+        }
+
+        setName("");
+        setQuantity("");
+        setCategory(null);
+        setDateAdded(null);
+        setExpiryDate(null);
+        setIngredientToEdit(null);
+        setIngredientFormOpened(false);
+    };
+
+    const modalTitle = ingredientToEdit ? "Edit Ingredient" : "Add Ingredient";
+    const submitButtonLabel = ingredientToEdit ? "Save Changes" : "Add Ingredient";
 
     const filteredIngredients = useMemo(() => {
-        return ingredients.filter((item) => {
+        return ingredientList.filter((item) => {
             const matchesSearch = item.name
                 .toLowerCase()
                 .includes(search.toLowerCase());
@@ -65,7 +148,7 @@ function MyIngredientsPage() {
                 : true;
             return matchesSearch && matchesCategory;
         });
-    }, [search, selectedCategory]);
+    }, [search, selectedCategory, ingredientList]);
 
     return (
         <Stack
@@ -115,10 +198,9 @@ function MyIngredientsPage() {
                         />
                         <Button
                             leftSection={<Plus size={18} />}
-                            w={"100%"}
-                            miw={"100px"}
-                            maw={"160px"}
+                            w={"160px"}
                             color="#6b7c5e"
+                            onClick={() => setIngredientFormOpened(true)}
                         >
                             Add Ingredient
                         </Button>
@@ -224,13 +306,16 @@ function MyIngredientsPage() {
                                                 <Group gap="xs" justify="flex-end">
                                                     <Button
                                                         color="#6b7c5e"
-                                                        size="xs">
-                                                        Mark as Used
+                                                        size="xs"
+                                                        onClick={() => markAsUsed(item.id)}
+                                                    >
+                                                        Mark As Used
                                                     </Button>
                                                     <ActionIcon
                                                         variant="light"
                                                         color="blue"
                                                         size="sm"
+                                                        onClick={() => handleOpenEditModal(item)}
                                                     >
                                                         <Edit size={16} />
                                                     </ActionIcon>
@@ -238,6 +323,7 @@ function MyIngredientsPage() {
                                                         variant="light"
                                                         color="red"
                                                         size="sm"
+                                                        onClick={() => deleteIngredient(item.id)}
                                                     >
                                                         <Trash2 size={16} />
                                                     </ActionIcon>
@@ -271,6 +357,87 @@ function MyIngredientsPage() {
                         </Table>
                     </Table.ScrollContainer>
                 </Paper>
+                <Modal
+                    opened={IngredientFormOpened}
+                    onClose={() => setIngredientFormOpened(false)}
+                    title={<Text fw={"500"} size="lg">Add Ingredient</Text>}
+                    centered
+                    overlayProps={{
+                        backgroundOpacity: 0.55,
+                        blur: 3,
+                    }}
+                    radius={"lg"}
+                    padding={"lg"}
+                >
+                    <Flex direction={"column"} gap={"sm"}>
+                        <TextInput
+                            label="Ingredient Name"
+                            placeholder="e.g., Milk"
+                            value={name}
+                            onChange={(e) => setName(e.currentTarget.value)}
+                        />
+                        <TextInput
+                            label="Quantity"
+                            placeholder="e.g., 2 liters"
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.currentTarget.value)}
+                        />
+                        <Select
+                            label="Category"
+                            placeholder="Select category"
+                            data={[
+                                'Protein',
+                                'Dairy',
+                                'Condiment',
+                                'Grain',
+                                'Fruit',
+                                'Vegetable',
+                            ]}
+                            value={category}
+                            onChange={setCategory}
+                        />
+                        <DatePickerInput
+                            label="Date Added"
+                            placeholder="Select date added"
+                            value={dateAdded}
+                            onChange={setDateAdded}
+                        />
+                        <DatePickerInput
+                            label="Expiry Date"
+                            placeholder="Select expiry date"
+                            value={expiryDate}
+                            onChange={setExpiryDate}
+                        />
+                        <Button
+                            mt="md"
+                            fullWidth
+                            color="#6b7c5e"
+                            onClick={() => {
+                                if (!name || !quantity || !category || !dateAdded || !expiryDate) return;
+
+                                const newIngredient: Ingredient = {
+                                    id: Date.now(),
+                                    name,
+                                    category,
+                                    quantity,
+                                    dateAdded: new Date(dateAdded).toISOString(),
+                                    expiryDate: new Date(expiryDate).toISOString(),
+                                };
+
+                                const updated = [...ingredientList, newIngredient];
+                                saveIngredients(updated);
+                                setName("");
+                                setQuantity("");
+                                setCategory(null);
+                                setDateAdded(null);
+                                setExpiryDate(null);
+                                setIngredientFormOpened(false);
+                            }}
+                        >
+                            Add Ingredient
+                        </Button>
+                    </Flex>
+                </Modal>
             </Stack>
         </Stack >
     );

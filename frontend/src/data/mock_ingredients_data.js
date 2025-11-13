@@ -5,7 +5,7 @@ export const ingredients = [
         name: "Carrots",
         category: "Vegetable",
         dateAdded: "2025-10-25",
-        expiryDate: "2025-11-15"
+        expiryDate: "2025-11-16"
     },
     {
         id: 2,

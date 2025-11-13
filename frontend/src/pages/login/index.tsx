@@ -2,13 +2,29 @@ import { Box, Button, Container, Paper, PasswordInput, Text, TextInput, Title } 
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [emailError, setEmailError] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
+
+        let isValid = true;
+
+        if (!emailRegex.test(email)) {
+            setEmailError('Please enter a valid email address (e.g., user@domain.com)');
+            isValid = false;
+        } else {
+            setEmailError('');
+        }
+
+        if (!isValid) {
+            return;
+        }
         console.log('Login attempt with:', { email, password });
         navigate({ to: '/dashboard' })
     };
@@ -57,7 +73,11 @@ function LoginPage() {
                             placeholder="your@email.com"
                             required
                             value={email}
-                            onChange={(e) => setEmail(e.currentTarget.value)}
+                            onChange={(e) => {
+                                setEmail(e.currentTarget.value)
+                                setEmailError('');
+                            }}
+                            error={emailError}
                             styles={{
                                 label: {
                                     color: '#2d3319',

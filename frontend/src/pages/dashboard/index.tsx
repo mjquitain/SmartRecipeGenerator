@@ -163,7 +163,7 @@ function DashboardPage() {
                 .filter(item => {
                     const expiry = new Date(item.expiryDate);
                     const daysToExpire = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-                    return daysToExpire <= 3 && daysToExpire >= 0;
+                    return daysToExpire <= 5 && daysToExpire >= 0;
                 })
                 .map(item => item.name.toLowerCase());
 
