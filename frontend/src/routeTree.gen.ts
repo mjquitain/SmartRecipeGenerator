@@ -13,6 +13,8 @@ import { Route as protectedRouteRouteImport } from './routes/(protected)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as protectedRecipeIndexRouteImport } from './routes/(protected)/recipe/index'
+import { Route as protectedProfileIndexRouteImport } from './routes/(protected)/profile/index'
+import { Route as protectedNotificationIndexRouteImport } from './routes/(protected)/notification/index'
 import { Route as protectedIngredientsIndexRouteImport } from './routes/(protected)/ingredients/index'
 import { Route as protectedDashboardIndexRouteImport } from './routes/(protected)/dashboard/index'
 
@@ -35,6 +37,17 @@ const protectedRecipeIndexRoute = protectedRecipeIndexRouteImport.update({
   path: '/recipe/',
   getParentRoute: () => protectedRouteRoute,
 } as any)
+const protectedProfileIndexRoute = protectedProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => protectedRouteRoute,
+} as any)
+const protectedNotificationIndexRoute =
+  protectedNotificationIndexRouteImport.update({
+    id: '/notification/',
+    path: '/notification/',
+    getParentRoute: () => protectedRouteRoute,
+  } as any)
 const protectedIngredientsIndexRoute =
   protectedIngredientsIndexRouteImport.update({
     id: '/ingredients/',
@@ -52,6 +65,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof authLoginRoute
   '/dashboard': typeof protectedDashboardIndexRoute
   '/ingredients': typeof protectedIngredientsIndexRoute
+  '/notification': typeof protectedNotificationIndexRoute
+  '/profile': typeof protectedProfileIndexRoute
   '/recipe': typeof protectedRecipeIndexRoute
 }
 export interface FileRoutesByTo {
@@ -59,6 +74,8 @@ export interface FileRoutesByTo {
   '/login': typeof authLoginRoute
   '/dashboard': typeof protectedDashboardIndexRoute
   '/ingredients': typeof protectedIngredientsIndexRoute
+  '/notification': typeof protectedNotificationIndexRoute
+  '/profile': typeof protectedProfileIndexRoute
   '/recipe': typeof protectedRecipeIndexRoute
 }
 export interface FileRoutesById {
@@ -68,13 +85,29 @@ export interface FileRoutesById {
   '/(auth)/login': typeof authLoginRoute
   '/(protected)/dashboard/': typeof protectedDashboardIndexRoute
   '/(protected)/ingredients/': typeof protectedIngredientsIndexRoute
+  '/(protected)/notification/': typeof protectedNotificationIndexRoute
+  '/(protected)/profile/': typeof protectedProfileIndexRoute
   '/(protected)/recipe/': typeof protectedRecipeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/dashboard' | '/ingredients' | '/recipe'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/ingredients'
+    | '/notification'
+    | '/profile'
+    | '/recipe'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/ingredients' | '/recipe'
+  to:
+    | '/'
+    | '/login'
+    | '/dashboard'
+    | '/ingredients'
+    | '/notification'
+    | '/profile'
+    | '/recipe'
   id:
     | '__root__'
     | '/'
@@ -82,6 +115,8 @@ export interface FileRouteTypes {
     | '/(auth)/login'
     | '/(protected)/dashboard/'
     | '/(protected)/ingredients/'
+    | '/(protected)/notification/'
+    | '/(protected)/profile/'
     | '/(protected)/recipe/'
   fileRoutesById: FileRoutesById
 }
@@ -121,6 +156,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof protectedRecipeIndexRouteImport
       parentRoute: typeof protectedRouteRoute
     }
+    '/(protected)/profile/': {
+      id: '/(protected)/profile/'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof protectedProfileIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
+    '/(protected)/notification/': {
+      id: '/(protected)/notification/'
+      path: '/notification'
+      fullPath: '/notification'
+      preLoaderRoute: typeof protectedNotificationIndexRouteImport
+      parentRoute: typeof protectedRouteRoute
+    }
     '/(protected)/ingredients/': {
       id: '/(protected)/ingredients/'
       path: '/ingredients'
@@ -141,12 +190,16 @@ declare module '@tanstack/react-router' {
 interface protectedRouteRouteChildren {
   protectedDashboardIndexRoute: typeof protectedDashboardIndexRoute
   protectedIngredientsIndexRoute: typeof protectedIngredientsIndexRoute
+  protectedNotificationIndexRoute: typeof protectedNotificationIndexRoute
+  protectedProfileIndexRoute: typeof protectedProfileIndexRoute
   protectedRecipeIndexRoute: typeof protectedRecipeIndexRoute
 }
 
 const protectedRouteRouteChildren: protectedRouteRouteChildren = {
   protectedDashboardIndexRoute: protectedDashboardIndexRoute,
   protectedIngredientsIndexRoute: protectedIngredientsIndexRoute,
+  protectedNotificationIndexRoute: protectedNotificationIndexRoute,
+  protectedProfileIndexRoute: protectedProfileIndexRoute,
   protectedRecipeIndexRoute: protectedRecipeIndexRoute,
 }
 

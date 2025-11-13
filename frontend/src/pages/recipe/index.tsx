@@ -9,6 +9,7 @@ import {
     Divider,
     Flex,
     Group,
+    Modal,
     Paper,
     rem,
     Select,
@@ -64,6 +65,7 @@ function RecipePage() {
     const [savedCategory, setSavedCategory] = useState<string | null>(null);
     const [favSearch, setFavSearch] = useState("");
     const [favCategory, setFavCategory] = useState<string | null>(null);
+    const [RecipeFormOpened, setRecipeFormOpened] = useState(false);
 
     const [savedRecipes, setSavedRecipes] = useState<MealRecipe[]>(() =>
         loadFromLocalStorage(SAVED_KEY)
@@ -461,7 +463,9 @@ function RecipePage() {
                                 root: {
                                     backgroundColor: '#8a9a7b'
                                 }
-                            }}>
+                            }}
+                                onClick={() => setRecipeFormOpened(true)}
+                            >
                                 Add Recipe
                             </Button>
                         </Flex>
@@ -590,6 +594,76 @@ function RecipePage() {
                     onClose={() => setIsDetailModalOpen(false)}
                     selectedRecipe={selectedRecipe}
                 />
+                <Modal
+                    opened={RecipeFormOpened}
+                    onClose={() => setRecipeFormOpened(false)}
+                    title={<Text fw={"500"} size="lg">Add New Recipe</Text>}
+                    overlayProps={{
+                        backgroundOpacity: 0.55,
+                        blur: 3,
+                    }}
+                    radius={"lg"}
+                    padding={"lg"}
+                    centered
+                >
+                    <Flex direction="column" gap="sm">
+                        <TextInput
+                            label="Recipe Name"
+                            placeholder="Enter the name of the recipe"
+                        />
+                        <Select
+                            label="Category"
+                            placeholder="Sort Recipes"
+                            data={[
+                                'Beef',
+                                'Chicken',
+                                'Vegetarian',
+                                'Vegan',
+                                'Dessert',
+                                'Lamb',
+                                'Miscellaneous',
+                                'Pasta',
+                                'Seafood',
+                                'Side',
+                                'Pork',
+                                'Breakfast',
+                                'Goat',
+                                'Starter'
+                            ]}
+                        />
+                        <TextInput
+                            label="Area"
+                            placeholder="Enter the area/cuisine of the recipe"
+                        />
+                        <TextInput
+                            label="Ingredients"
+                            placeholder="Enter ingredients separated by commas"
+                        />
+                        <TextInput
+                            label="Instructions"
+                            placeholder="Enter the cooking instructions"
+                        />
+                        <TextInput
+                            label="YouTube Link"
+                            placeholder="Enter a YouTube link for the recipe (optional)"
+                        />
+                        <Button
+                            mt="md"
+                            fullWidth
+                            size="md"
+                            styles={{
+                                root: {
+                                    backgroundColor: '#8a9a7b',
+                                    '&:hover': {
+                                        backgroundColor: '#6b7c5e',
+                                    },
+                                },
+                            }}
+                        >
+                            Add Recipe
+                        </Button>
+                    </Flex>
+                </Modal>
             </Stack>
         </Stack >
     );

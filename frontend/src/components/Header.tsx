@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Group, Text, Title } from '@mantine/core'
+import { ActionIcon, Box, Flex, Group, Text, Title } from '@mantine/core'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { Bell, ChefHat, Home, LogOut, Menu, User, X } from 'lucide-react'
 import { useState } from 'react'
@@ -25,7 +25,7 @@ export default function Header() {
         >
           <Menu size={24} />
         </button>
-        <Box style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <Box style={{ display: 'flex', justifyContent: 'space-between', width: '100%', }}>
           <Group ml={'16px'} >
             <ChefHat size={32} color="#8a9a7b" />
             <div>
@@ -37,14 +37,18 @@ export default function Header() {
               </Text>
             </div>
           </Group>
-          <Group justify='flex-end' mr={"16px"} gap={"lg"}>
-            <ActionIcon variant="transparent" aria-label='Notification'>
-              <Bell size={32} color="#8a9a7b" />
-            </ActionIcon>
-            <ActionIcon variant="transparent" aria-label='Settings'>
-              <User size={32} color="#8a9a7b" />
-            </ActionIcon>
-          </Group>
+          <Flex direction="row" justify='flex-end' mr={"16px"} gap={"lg"} align={"center"}>
+            <Link to="/notification">
+              <ActionIcon variant="transparent" aria-label='Notification'>
+                <Bell size={32} color="#8a9a7b" />
+              </ActionIcon>
+            </Link>
+            <Link to="/profile">
+              <ActionIcon variant="transparent" aria-label='Settings'>
+                <User size={32} color="#8a9a7b" />
+              </ActionIcon>
+            </Link>
+          </Flex>
         </Box>
       </header>
 
