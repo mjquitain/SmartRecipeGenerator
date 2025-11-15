@@ -77,9 +77,9 @@ function ProfilePage() {
         >
             <Stack
                 w="100%"
-                maw={rem(1200)}
+                maw={rem(1655)}
                 p="xl"
-                gap="lg"
+                gap="xs"
             >
                 <Group justify="space-between" mb="md">
                     <div>
